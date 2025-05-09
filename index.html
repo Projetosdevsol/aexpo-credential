@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Inscrições</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f9f9f9;
+    }
+    button {
+      padding: 6px 12px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+
+    /* Estilo da etiqueta para impressão */
+    #etiqueta {
+      display: none;
+      font-family: Arial, sans-serif;
+      width: 300px;
+      padding: 16px;
+      border: 1px solid #000;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #etiqueta, #etiqueta * {
+        visibility: visible;
+      }
+      #etiqueta {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyCdLkbrbS0qmJ5Ea03nmaSPBC1zk_vlaX0",
+    authDomain: "expo-aruja.firebaseapp.com",
+    databaseURL: "https://expo-aruja-default-rtdb.firebaseio.com",
+    projectId: "expo-aruja",
+    storageBucket: "expo-aruja.firebasestorage.app",
+    messagingSenderId: "143040228167",
+    appId: "1:143040228167:web:b3e9e9374bfa97d6a8ba62",
+    measurementId: "G-DSQJW575WW"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function carregarInscricoes() {
+      const tbody = document.getElementById("tabela-inscricoes");
+      tbody.innerHTML = "";
+
+      try {
+        const querySnapshot = await getDocs(collection(db, "inscricoes"));
+        querySnapshot.forEach((doc) => {
+          const dados = doc.data();
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+            <td>${dados.nome || ""}</td>
+            <td>${dados.empresa || ""}</td>
+            <td>${dados.cpf || ""}</td>
+            <td>${dados.telefone || ""}</td>
+            <td>${dados.email || ""}</td>
+            <td>${dados.expositor ? "Sim" : "Não"}</td>
+            <td><button onclick='imprimirEtiqueta(${JSON.stringify(dados)})'>Imprimir Etiqueta</button></td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      } catch (erro) {
+        console.error("Erro ao carregar inscrições:", erro);
+      }
+    }
+
+    window.imprimirEtiqueta = function(dados) {
+      const etiqueta = document.getElementById("etiqueta");
+      etiqueta.innerHTML = `
+        <h2>Credencial</h2>
+        <p><strong>Nome:</strong> ${dados.nome || ""}</p>
+        <p><strong>Empresa:</strong> ${dados.empresa || ""}</p>
+        <p><strong>Expositor:</strong> ${dados.expositor ? "Sim" : "Não"}</p>
+      `;
+      etiqueta.style.display = "block";
+      window.print();
+      etiqueta.style.display = "none";
+    };
+
+    window.onload = carregarInscricoes;
+  </script>
+</head>
+<body>
+  <h1>Lista de Inscrições</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Empresa</th>
+        <th>CPF</th>
+        <th>Telefone</th>
+        <th>Email</th>
+        <th>Expositor</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-inscricoes">
+      <!-- Conteúdo dinâmico -->
+    </tbody>
+  </table>
+
+  <!-- Etiqueta oculta para impressão -->
+  <div id="etiqueta"></div>
+</body>
+</html>
